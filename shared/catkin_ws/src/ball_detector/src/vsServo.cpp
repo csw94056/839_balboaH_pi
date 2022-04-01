@@ -18,8 +18,15 @@
 #include <vector>
 using namespace std;
 
-class SVServo{
-  ros::NodeHandle n;
-  ros::Subscriber debug_img1_sub = n.subscribe("balldebug/img1", 1, &SVServo::debug_img1_callback, this);
-  
+class VSServo{
+public:
+    visualServo();
+    
+private:
+    ros::NodeHandle n;
+    ros::Subscriber circle_sub = n.Subscrie("ballLocation", 1, &VSServo::ballLocation_callback, this);
+}
+
+VSServo::visualServo() {
+
 }
