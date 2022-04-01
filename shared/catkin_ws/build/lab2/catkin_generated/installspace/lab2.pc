@@ -1,0 +1,8 @@
+prefix=/home/shared/catkin_ws/install
+
+Name: lab2
+Description: Description of lab2
+Version: 0.0.0
+Cflags: -I${prefix}/include
+Libs: -L${prefix}/lib -lbalboa_core
+Requires: 
