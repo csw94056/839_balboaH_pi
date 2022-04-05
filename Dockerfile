@@ -56,7 +56,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 #Python serial libraries
 RUN pip3 install setuptools
-RUN pip3 install serial serial-tool
+# RUN pip3 install serial serial-tool
 
 #Install python2 pip for ROS
 RUN apt-get update && apt-get install -y --no-install-recommends \
