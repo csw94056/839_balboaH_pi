@@ -12,6 +12,7 @@ from geometry_msgs.msg import Twist
 from balboa_core.msg import balboaLL
 from balboa_core.msg import balboaMotorSpeeds
 from balboa_core.msg import lineSensor
+from ball_detector.msg import ballLocation
 
 INF = 100000000000
 
@@ -26,6 +27,7 @@ class PIDNode(object):
         # Initiate Subscribers
         self.sub_TurtleTeleopKey = rospy.Subscriber('turtle1/cmd_vel_pid', Twist, self.handleTurtleTeleopKey)
         self.sub_BalboaLL = rospy.Subscriber('balboaLL', balboaLL, self.handleBalboaLL)
+        self.sub_ballDector = rospy.Subscriber('balboaLL', balboaLL, self.handleBalboaLL)
         self.sub_ls = rospy.Subscriber('lineSensor', lineSensor, self.handleLineSensor)
         self.sub_ir = rospy.Subscriber('irRange', Float64, self.handleIrRangeSensor)
         self.pub_ls = rospy.Publisher('lineSensorMap', lineSensor, queue_size=10)
