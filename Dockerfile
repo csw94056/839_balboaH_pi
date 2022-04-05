@@ -65,7 +65,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 #The 2.0 libs for ROS
 RUN pip install setuptools
-RUN pip install serial pyserial
+RUN pip install pyserial
 
 #############################
 #
