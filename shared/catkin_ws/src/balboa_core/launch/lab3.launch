@@ -8,5 +8,5 @@
     <node name="balboa_teleop" pkg="balboa_core" type="balboa_teleop.py"/>
     <node name="balboa_serial" pkg="balboa_core" type="balboa_serial.py"/>
 
-    <node name="ballDetector" pkg="ball_detector" type="BallDetector"/>
+    <node name="ballDetector" pkg="ball_detector" type="ball_detector_node"/>
 </launch>
