@@ -27,7 +27,7 @@ class PIDNode(object):
         # Initiate Subscribers
         self.sub_TurtleTeleopKey = rospy.Subscriber('turtle1/cmd_vel_pid', Twist, self.handleTurtleTeleopKey)
         self.sub_BalboaLL = rospy.Subscriber('balboaLL', balboaLL, self.handleBalboaLL)
-        self.sub_ballDector = rospy.Subscriber('balboaLL', balboaLL, self.handleBalboaLL)
+        self.sub_ballLocation = rospy.Subscriber('ball', ballLocation, self.handleBallLocation)
         self.sub_ls = rospy.Subscriber('lineSensor', lineSensor, self.handleLineSensor)
         self.sub_ir = rospy.Subscriber('irRange', Float64, self.handleIrRangeSensor)
         self.pub_ls = rospy.Publisher('lineSensorMap', lineSensor, queue_size=10)
@@ -73,7 +73,10 @@ class PIDNode(object):
 
         self.bugFlag = 0
         self.unobsMoveAngle = 0
-        
+
+        #flag for ball detector
+        self.ball_detector = 0
+        self.ball_detector_dist = 0
 
     def handleTurtleTeleopKey(self, teleop_msg):
         # update target distance and angle based on turtle_teleop_key/cmd_vel
@@ -96,6 +99,23 @@ class PIDNode(object):
             else:
                 self.target_angle = self.target_angle + (teleop_msg.angular.z / 2.0)*90.0
  
+    def handleBallLocation(self, bl_msg):
+        if self.ball_detector == 0:
+            return
+        
+        dist = (111.88 - bl_msg.radius)/(0.6982) # in cm
+
+        # postion the robot to face the ball straight on 
+        if bl_msg.x < -20 or bl_msg.x > 20:
+            self.target_angle = math.atan(bl_msg.x / dist)
+            self.target_distance = INF
+
+        # keep the desired distance between the robot and the ball
+        elif abs(self.ball_detector_dist - dist) < 2:
+            self.target_distance = self.current_distance + (dist - self.ball_detector_dist) * 52.2
+            self.target_angle = INF
+            
+
         
     def handleBalboaLL(self, balboall_msg):
         # receive PID settings from launch file or command line via (rosparam set param_name value)
@@ -413,6 +433,8 @@ class PIDNode(object):
                 self.reactive_control = 0
                 self.bugFlag = 0
                 self.r_ctrl_dist_target = 0
+                self.ball_detector = 0
+                self.ball_detector_dist = 0
                 
             elif val[0] == 'a' and val[1] == 'v' and val[2] == 'a':
                 # activate angleVelPID
@@ -449,6 +471,13 @@ class PIDNode(object):
                 self.target_angle = INF
                 self.target_distance = INF
                 self.draw_CS = 1
+
+            elif val[0] == 'b' and val[1] == 'd':
+                self.ball_detector_dist = int(val[2:])
+                self.ball_detector = 1
+                self.target_angle = INF
+                self.target_distance = INF
+                
                 
             elif val[0] == 'i' and val[1] == 'r':
                 # IR sensor range is 20-150cm
