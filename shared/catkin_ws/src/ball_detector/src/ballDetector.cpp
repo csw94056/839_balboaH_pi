@@ -105,8 +105,8 @@ BallDetector::BallDetector()
     //int lowh = 125, lows = 0, lowv = 25;
     //int highh = 185, highs = 95, highv = 175;
     //off-center lens camera
-    int lowh = 125, lows = 90, lowv = 25;
-    int highh = 185, highs = 190, highv = 255;
+    int lowh = 0, lows = 100, lowv = 151;
+    int highh =59, highs = 255, highv = 255;
     nh.param("thresh/low/h",lowh,lowh);
     nh.setParam("thresh/low/h",lowh);
     nh.param("thresh/low/s",lows,lows);
