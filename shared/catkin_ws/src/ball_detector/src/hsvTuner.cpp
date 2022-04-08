@@ -82,17 +82,17 @@ class HSVTuner {
 			else {
 				lowhsv.x = avgh/values - 5;
 			}
-			if(avgs/values - 30 < 0) {
+			if(avgs/values - 50 < 0) {
 				lowhsv.y = 0;
 			}
 			else {
-				lowhsv.y = avgs/values - 30;
+				lowhsv.y = avgs/values - 50;
 			}
-			if(avgv/values - 30 < 0) {
+			if(avgv/values - 50 < 0) {
 				lowhsv.z = 0;
 			}
 			else {
-				lowhsv.z = avgv/values - 30;
+				lowhsv.z = avgv/values - 50;
 			}
 			if(avgh/values + 5 > 255) {
 				highhsv.x  = 255;
