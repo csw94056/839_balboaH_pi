@@ -34,7 +34,7 @@ class PIDNode(object):
         # Initiate Publishers
         self.pub_distancePID = rospy.Publisher('distancePID', balboaMotorSpeeds, queue_size=10)
         self.pub_angularPID = rospy.Publisher('angularPID', Int16, queue_size=10)
-        
+        self.pub_servo_distance = rospy.Publisher('servoDistance', Float64, queue_size=10)
         self.activate_angleVelPID = 0
         # Initiate variables for current measurements
         self.current_angle = 0
@@ -59,8 +59,8 @@ class PIDNode(object):
         rospy.set_param('clean_angleCtrl/I', 0.0)
         rospy.set_param('clean_angleCtrl/D', 0.0)
         self.draw_CS = 0
-        self.angle_speed_limit = 45
-        self.distance_speed_limit = 15
+        self.angle_speed_limit = 10
+        self.distance_speed_limit = 5
         # flag for reactive control
         self.reactive_control = 0
         self.r_ctrl_dist_target = 0
@@ -100,34 +100,36 @@ class PIDNode(object):
                 self.target_angle = self.target_angle + (teleop_msg.angular.z / 2.0)*90.0
  
     def handleBallLocation(self, bl_msg):
-        if self.ball_detector == 0 or bl_msg.radius < 10:
+        # ignore if ball detector is not activate or radius is less than 25
+        if self.ball_detector == 0 or bl_msg.radius < 25:
             return
-        self.angle_speed_limit = 5
-        self.distance_speed_limit = 5
-        dist = 189.23 * math.exp(-0.014 * bl_msg.radius)
-        #dist = (111.88 - bl_msg.radius)/(0.6982) # in cm
-        x = bl_msg.radius / 400.0 *  bl_msg.x # in cm
-        #x = bl_msg.x
+
+        dist = 189.23 * math.exp(-0.014 * bl_msg.radius) # cm
+        # scale x variable in respect to the scale of the radius from ballLocation
+        x = bl_msg.x * bl_msg.radius / bl_msg.imageWidth
+        
         print("bl_msg.x ", bl_msg.x)
         print("x ", x)
         print("dist ", dist)
         print("angle ",  ((math.atan(x / dist)) * 180.0 / math.pi) )
         print("radius ", bl_msg.radius)
-        # postion the robot to face the ball straight on 
-        if (dist >= 40 and abs(x) > 10) or (dist < 40 and abs(x) > 50):
-            self.target_angle = self.current_angle - ((math.atan(x / dist)) * 180.0 / math.pi) 
-        
+
+        # position the robot to face the ball straight on
+        if abs(bl_msg.x) > bl_msg.radius:
+            angle_ = ((math.atan(x/dist)) * 180.0 / math.pi)
+            # if the robot is close to the ball, then reduce angle control by half
+            if bl_msg.radius > 50:
+                angle_ = 0.5 * angle_ 
+            self.target_angle = self.current_angle - angle_
             self.target_distance = INF
-            if math.atan(x / dist) < 0:
-                print("turning left ")
-            else:
-                print("turning right ")
-        # keep the desired distance between the robot and the ball
+
+        # move the robot toward the ball
         elif abs(self.ball_detector_dist - dist) > 15:
             self.target_distance = self.current_distance + (dist - self.ball_detector_dist) * 52.2
             self.target_angle = INF
-            
-
+        servo_msg = Float64()
+        servo_msg.data = dist
+        self.pub_servo_distance.publish(servo_msg)
         
     def handleBalboaLL(self, balboall_msg):
         # receive PID settings from launch file or command line via (rosparam set param_name value)
@@ -489,8 +491,6 @@ class PIDNode(object):
                 self.ball_detector = 1
                 self.target_angle = INF
                 self.target_distance = INF
-                self.angle_speed_limit = 5
-                self.distance_speed_limit = 8
                 
             elif val[0] == 'i' and val[1] == 'r':
                 # IR sensor range is 20-150cm
