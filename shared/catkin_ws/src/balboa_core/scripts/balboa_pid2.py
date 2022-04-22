@@ -169,7 +169,7 @@ class PIDNode(object):
         if abs(self.lm_dist - distance) > 15 and dist_ctrl == 1:
             print("distance control ---------------ball detector")
             
-            if distance >= 110:
+            if distance >= 110
                 self.target_distance = self.current_distance + (distance - self.lm_dist) * 52.2
                 self.target_angle = INF
 
