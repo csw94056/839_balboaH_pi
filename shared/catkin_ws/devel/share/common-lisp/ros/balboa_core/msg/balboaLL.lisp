@@ -37,6 +37,11 @@
     :initarg :angleZ
     :type cl:integer
     :initform 0)
+   (imuZ
+    :reader imuZ
+    :initarg :imuZ
+    :type cl:integer
+    :initform 0)
    (driveLeft
     :reader driveLeft
     :initarg :driveLeft
@@ -107,6 +112,11 @@
   (roslisp-msg-protocol:msg-deprecation-warning "Using old-style slot reader balboa_core-msg:angleZ-val is deprecated.  Use balboa_core-msg:angleZ instead.")
   (angleZ m))
 
+(cl:ensure-generic-function 'imuZ-val :lambda-list '(m))
+(cl:defmethod imuZ-val ((m <balboaLL>))
+  (roslisp-msg-protocol:msg-deprecation-warning "Using old-style slot reader balboa_core-msg:imuZ-val is deprecated.  Use balboa_core-msg:imuZ instead.")
+  (imuZ m))
+
 (cl:ensure-generic-function 'driveLeft-val :lambda-list '(m))
 (cl:defmethod driveLeft-val ((m <balboaLL>))
   (roslisp-msg-protocol:msg-deprecation-warning "Using old-style slot reader balboa_core-msg:driveLeft-val is deprecated.  Use balboa_core-msg:driveLeft instead.")
@@ -164,6 +174,12 @@
     (cl:write-byte (cl:ldb (cl:byte 8 24) unsigned) ostream)
     )
   (cl:let* ((signed (cl:slot-value msg 'angleZ)) (unsigned (cl:if (cl:< signed 0) (cl:+ signed 4294967296) signed)))
+    (cl:write-byte (cl:ldb (cl:byte 8 0) unsigned) ostream)
+    (cl:write-byte (cl:ldb (cl:byte 8 8) unsigned) ostream)
+    (cl:write-byte (cl:ldb (cl:byte 8 16) unsigned) ostream)
+    (cl:write-byte (cl:ldb (cl:byte 8 24) unsigned) ostream)
+    )
+  (cl:let* ((signed (cl:slot-value msg 'imuZ)) (unsigned (cl:if (cl:< signed 0) (cl:+ signed 4294967296) signed)))
     (cl:write-byte (cl:ldb (cl:byte 8 0) unsigned) ostream)
     (cl:write-byte (cl:ldb (cl:byte 8 8) unsigned) ostream)
     (cl:write-byte (cl:ldb (cl:byte 8 16) unsigned) ostream)
@@ -244,6 +260,12 @@
       (cl:setf (cl:ldb (cl:byte 8 8) unsigned) (cl:read-byte istream))
       (cl:setf (cl:ldb (cl:byte 8 16) unsigned) (cl:read-byte istream))
       (cl:setf (cl:ldb (cl:byte 8 24) unsigned) (cl:read-byte istream))
+      (cl:setf (cl:slot-value msg 'imuZ) (cl:if (cl:< unsigned 2147483648) unsigned (cl:- unsigned 4294967296))))
+    (cl:let ((unsigned 0))
+      (cl:setf (cl:ldb (cl:byte 8 0) unsigned) (cl:read-byte istream))
+      (cl:setf (cl:ldb (cl:byte 8 8) unsigned) (cl:read-byte istream))
+      (cl:setf (cl:ldb (cl:byte 8 16) unsigned) (cl:read-byte istream))
+      (cl:setf (cl:ldb (cl:byte 8 24) unsigned) (cl:read-byte istream))
       (cl:setf (cl:slot-value msg 'driveLeft) (cl:if (cl:< unsigned 2147483648) unsigned (cl:- unsigned 4294967296))))
     (cl:let ((unsigned 0))
       (cl:setf (cl:ldb (cl:byte 8 0) unsigned) (cl:read-byte istream))
@@ -285,19 +307,20 @@
   "balboa_core/balboaLL")
 (cl:defmethod roslisp-msg-protocol:md5sum ((type (cl:eql '<balboaLL>)))
   "Returns md5sum for a message object of type '<balboaLL>"
-  "0a0a3ddad915416071f2d2213a371653")
+  "177f0af1ae2e6db7ccad48fad72071e3")
 (cl:defmethod roslisp-msg-protocol:md5sum ((type (cl:eql 'balboaLL)))
   "Returns md5sum for a message object of type 'balboaLL"
-  "0a0a3ddad915416071f2d2213a371653")
+  "177f0af1ae2e6db7ccad48fad72071e3")
 (cl:defmethod roslisp-msg-protocol:message-definition ((type (cl:eql '<balboaLL>)))
   "Returns full string definition for message of type '<balboaLL>"
-  (cl:format cl:nil "Header header~%~%int32 arduinoMillis~%int32 batteryMillivolts~%int32 angleY~%int32 angleX~%int32 angleZ~%int32 driveLeft~%int32 driveRight~%int32 speedLeft~%int32 speedRight~%int32 distanceLeft~%int32 distanceRight~%~%~%================================================================================~%MSG: std_msgs/Header~%# Standard metadata for higher-level stamped data types.~%# This is generally used to communicate timestamped data ~%# in a particular coordinate frame.~%# ~%# sequence ID: consecutively increasing ID ~%uint32 seq~%#Two-integer timestamp that is expressed as:~%# * stamp.sec: seconds (stamp_secs) since epoch (in Python the variable is called 'secs')~%# * stamp.nsec: nanoseconds since stamp_secs (in Python the variable is called 'nsecs')~%# time-handling sugar is provided by the client library~%time stamp~%#Frame this data is associated with~%string frame_id~%~%~%"))
+  (cl:format cl:nil "Header header~%~%int32 arduinoMillis~%int32 batteryMillivolts~%int32 angleY~%int32 angleX~%int32 angleZ~%int32 imuZ~%int32 driveLeft~%int32 driveRight~%int32 speedLeft~%int32 speedRight~%int32 distanceLeft~%int32 distanceRight~%~%~%================================================================================~%MSG: std_msgs/Header~%# Standard metadata for higher-level stamped data types.~%# This is generally used to communicate timestamped data ~%# in a particular coordinate frame.~%# ~%# sequence ID: consecutively increasing ID ~%uint32 seq~%#Two-integer timestamp that is expressed as:~%# * stamp.sec: seconds (stamp_secs) since epoch (in Python the variable is called 'secs')~%# * stamp.nsec: nanoseconds since stamp_secs (in Python the variable is called 'nsecs')~%# time-handling sugar is provided by the client library~%time stamp~%#Frame this data is associated with~%string frame_id~%~%~%"))
 (cl:defmethod roslisp-msg-protocol:message-definition ((type (cl:eql 'balboaLL)))
   "Returns full string definition for message of type 'balboaLL"
-  (cl:format cl:nil "Header header~%~%int32 arduinoMillis~%int32 batteryMillivolts~%int32 angleY~%int32 angleX~%int32 angleZ~%int32 driveLeft~%int32 driveRight~%int32 speedLeft~%int32 speedRight~%int32 distanceLeft~%int32 distanceRight~%~%~%================================================================================~%MSG: std_msgs/Header~%# Standard metadata for higher-level stamped data types.~%# This is generally used to communicate timestamped data ~%# in a particular coordinate frame.~%# ~%# sequence ID: consecutively increasing ID ~%uint32 seq~%#Two-integer timestamp that is expressed as:~%# * stamp.sec: seconds (stamp_secs) since epoch (in Python the variable is called 'secs')~%# * stamp.nsec: nanoseconds since stamp_secs (in Python the variable is called 'nsecs')~%# time-handling sugar is provided by the client library~%time stamp~%#Frame this data is associated with~%string frame_id~%~%~%"))
+  (cl:format cl:nil "Header header~%~%int32 arduinoMillis~%int32 batteryMillivolts~%int32 angleY~%int32 angleX~%int32 angleZ~%int32 imuZ~%int32 driveLeft~%int32 driveRight~%int32 speedLeft~%int32 speedRight~%int32 distanceLeft~%int32 distanceRight~%~%~%================================================================================~%MSG: std_msgs/Header~%# Standard metadata for higher-level stamped data types.~%# This is generally used to communicate timestamped data ~%# in a particular coordinate frame.~%# ~%# sequence ID: consecutively increasing ID ~%uint32 seq~%#Two-integer timestamp that is expressed as:~%# * stamp.sec: seconds (stamp_secs) since epoch (in Python the variable is called 'secs')~%# * stamp.nsec: nanoseconds since stamp_secs (in Python the variable is called 'nsecs')~%# time-handling sugar is provided by the client library~%time stamp~%#Frame this data is associated with~%string frame_id~%~%~%"))
 (cl:defmethod roslisp-msg-protocol:serialization-length ((msg <balboaLL>))
   (cl:+ 0
      (roslisp-msg-protocol:serialization-length (cl:slot-value msg 'header))
+     4
      4
      4
      4
@@ -319,6 +342,7 @@
     (cl:cons ':angleY (angleY msg))
     (cl:cons ':angleX (angleX msg))
     (cl:cons ':angleZ (angleZ msg))
+    (cl:cons ':imuZ (imuZ msg))
     (cl:cons ':driveLeft (driveLeft msg))
     (cl:cons ':driveRight (driveRight msg))
     (cl:cons ':speedLeft (speedLeft msg))

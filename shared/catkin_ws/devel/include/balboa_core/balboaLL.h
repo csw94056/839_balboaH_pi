@@ -31,6 +31,7 @@ struct balboaLL_
     , angleY(0)
     , angleX(0)
     , angleZ(0)
+    , imuZ(0)
     , driveLeft(0)
     , driveRight(0)
     , speedLeft(0)
@@ -45,6 +46,7 @@ struct balboaLL_
     , angleY(0)
     , angleX(0)
     , angleZ(0)
+    , imuZ(0)
     , driveLeft(0)
     , driveRight(0)
     , speedLeft(0)
@@ -73,6 +75,9 @@ struct balboaLL_
 
    typedef int32_t _angleZ_type;
   _angleZ_type angleZ;
+
+   typedef int32_t _imuZ_type;
+  _imuZ_type imuZ;
 
    typedef int32_t _driveLeft_type;
   _driveLeft_type driveLeft;
@@ -127,6 +132,7 @@ bool operator==(const ::balboa_core::balboaLL_<ContainerAllocator1> & lhs, const
     lhs.angleY == rhs.angleY &&
     lhs.angleX == rhs.angleX &&
     lhs.angleZ == rhs.angleZ &&
+    lhs.imuZ == rhs.imuZ &&
     lhs.driveLeft == rhs.driveLeft &&
     lhs.driveRight == rhs.driveRight &&
     lhs.speedLeft == rhs.speedLeft &&
@@ -189,12 +195,12 @@ struct MD5Sum< ::balboa_core::balboaLL_<ContainerAllocator> >
 {
   static const char* value()
   {
-    return "0a0a3ddad915416071f2d2213a371653";
+    return "177f0af1ae2e6db7ccad48fad72071e3";
   }
 
   static const char* value(const ::balboa_core::balboaLL_<ContainerAllocator>&) { return value(); }
-  static const uint64_t static_value1 = 0x0a0a3ddad9154160ULL;
-  static const uint64_t static_value2 = 0x71f2d2213a371653ULL;
+  static const uint64_t static_value1 = 0x177f0af1ae2e6db7ULL;
+  static const uint64_t static_value2 = 0xccad48fad72071e3ULL;
 };
 
 template<class ContainerAllocator>
@@ -220,6 +226,7 @@ struct Definition< ::balboa_core::balboaLL_<ContainerAllocator> >
 "int32 angleY\n"
 "int32 angleX\n"
 "int32 angleZ\n"
+"int32 imuZ\n"
 "int32 driveLeft\n"
 "int32 driveRight\n"
 "int32 speedLeft\n"
@@ -267,6 +274,7 @@ namespace serialization
       stream.next(m.angleY);
       stream.next(m.angleX);
       stream.next(m.angleZ);
+      stream.next(m.imuZ);
       stream.next(m.driveLeft);
       stream.next(m.driveRight);
       stream.next(m.speedLeft);
@@ -304,6 +312,8 @@ struct Printer< ::balboa_core::balboaLL_<ContainerAllocator> >
     Printer<int32_t>::stream(s, indent + "  ", v.angleX);
     s << indent << "angleZ: ";
     Printer<int32_t>::stream(s, indent + "  ", v.angleZ);
+    s << indent << "imuZ: ";
+    Printer<int32_t>::stream(s, indent + "  ", v.imuZ);
     s << indent << "driveLeft: ";
     Printer<int32_t>::stream(s, indent + "  ", v.driveLeft);
     s << indent << "driveRight: ";

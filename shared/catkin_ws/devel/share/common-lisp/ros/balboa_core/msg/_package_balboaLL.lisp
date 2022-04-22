@@ -11,6 +11,8 @@
           ANGLEX
           ANGLEZ-VAL
           ANGLEZ
+          IMUZ-VAL
+          IMUZ
           DRIVELEFT-VAL
           DRIVELEFT
           DRIVERIGHT-VAL

@@ -25,6 +25,7 @@ class balboaLL {
       this.angleY = null;
       this.angleX = null;
       this.angleZ = null;
+      this.imuZ = null;
       this.driveLeft = null;
       this.driveRight = null;
       this.speedLeft = null;
@@ -68,6 +69,12 @@ class balboaLL {
       }
       else {
         this.angleZ = 0;
+      }
+      if (initObj.hasOwnProperty('imuZ')) {
+        this.imuZ = initObj.imuZ
+      }
+      else {
+        this.imuZ = 0;
       }
       if (initObj.hasOwnProperty('driveLeft')) {
         this.driveLeft = initObj.driveLeft
@@ -122,6 +129,8 @@ class balboaLL {
     bufferOffset = _serializer.int32(obj.angleX, buffer, bufferOffset);
     // Serialize message field [angleZ]
     bufferOffset = _serializer.int32(obj.angleZ, buffer, bufferOffset);
+    // Serialize message field [imuZ]
+    bufferOffset = _serializer.int32(obj.imuZ, buffer, bufferOffset);
     // Serialize message field [driveLeft]
     bufferOffset = _serializer.int32(obj.driveLeft, buffer, bufferOffset);
     // Serialize message field [driveRight]
@@ -153,6 +162,8 @@ class balboaLL {
     data.angleX = _deserializer.int32(buffer, bufferOffset);
     // Deserialize message field [angleZ]
     data.angleZ = _deserializer.int32(buffer, bufferOffset);
+    // Deserialize message field [imuZ]
+    data.imuZ = _deserializer.int32(buffer, bufferOffset);
     // Deserialize message field [driveLeft]
     data.driveLeft = _deserializer.int32(buffer, bufferOffset);
     // Deserialize message field [driveRight]
@@ -171,7 +182,7 @@ class balboaLL {
   static getMessageSize(object) {
     let length = 0;
     length += std_msgs.msg.Header.getMessageSize(object.header);
-    return length + 44;
+    return length + 48;
   }
 
   static datatype() {
@@ -181,7 +192,7 @@ class balboaLL {
 
   static md5sum() {
     //Returns md5sum for a message object
-    return '0a0a3ddad915416071f2d2213a371653';
+    return '177f0af1ae2e6db7ccad48fad72071e3';
   }
 
   static messageDefinition() {
@@ -194,6 +205,7 @@ class balboaLL {
     int32 angleY
     int32 angleX
     int32 angleZ
+    int32 imuZ
     int32 driveLeft
     int32 driveRight
     int32 speedLeft
@@ -267,6 +279,13 @@ class balboaLL {
     }
     else {
       resolved.angleZ = 0
+    }
+
+    if (msg.imuZ !== undefined) {
+      resolved.imuZ = msg.imuZ;
+    }
+    else {
+      resolved.imuZ = 0
     }
 
     if (msg.driveLeft !== undefined) {

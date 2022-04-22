@@ -1,0 +1,6 @@
+<launch>
+  
+  <node name="landmarkDetector" pkg="landmark_self_sim" type="landmarkDetector" output="screen">
+  </node>
+
+</launch>

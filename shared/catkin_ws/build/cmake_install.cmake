@@ -134,6 +134,7 @@ if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   include("/home/shared/catkin_ws/build/balboa_core/cmake_install.cmake")
   include("/home/shared/catkin_ws/build/lab2/cmake_install.cmake")
   include("/home/shared/catkin_ws/build/ball_detector/cmake_install.cmake")
+  include("/home/shared/catkin_ws/build/landmark_self_sim/cmake_install.cmake")
 
 endif()
 

@@ -1,0 +1,13 @@
+<launch>
+    <param name="distanceCtrl/P" type="double" value="0.0"/>
+    <param name="distanceCtrl/I" type="double" value="0.0"/>
+    <param name="distanceCtrl/D" type="double" value="0.0"/>
+
+    <param name="angleCtrl/P" type="double" value="0.0"/>
+    <param name="angleCtrl/I" type="double" value="0.0"/>
+    <param name="angleCtrl/D" type="double" value="0.0"/>
+
+    <param name="angleRateCtrl/P" type="double" value="0.0"/>
+    <param name="angleRateCtrl/I" type="double" value="0.0"/>
+    <param name="angleRateCtrl/D" type="double" value="0.0"/>
+</launch>

@@ -1,0 +1,9 @@
+<launch>
+  <node name="landmark_debug1" pkg="image_view" type="image_view" respawn="false">
+    <remap from="image" to="/usb_cam/image_raw"/>
+  </node>
+
+  <node name="landmark_debug2" pkg="image_view" type="image_view" respawn="false">
+    <remap from="image" to="/landmark/outImg"/>
+  </node>
+</launch>

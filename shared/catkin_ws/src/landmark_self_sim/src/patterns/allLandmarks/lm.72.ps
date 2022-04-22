@@ -1,0 +1,140 @@
+%!PS-Adobe-2.0
+%%Title: lm.72.ps
+%%Creator: make-landmark
+%%CreationDate: Mon Oct 21 15:44:23 CDT 2013
+%Magnification: 1.00
+%%Orientation: Landscape
+%%DocumentFonts: Arial
+%%BoundingBox: 11 17 577 757
+%%Pages: 1
+%%BeginSetup
+%%IncludeFeature: *PageSize Letter
+%%EndSetup
+%%EndComments
+
+/factor 3 def		% scale factor
+/ptype (square) def	% pattern type: (sine) or (square)
+
+/code [1  0 1 0 0 1 0 0 0  0  1] def	% bar code, top to bottom, 1=black
+/codestr (72) def			% code string, e.g., code in hex
+
+
+% uncomment to check bounding box:
+% 11 17 moveto 577 17 lineto 577 757 lineto 11 757 lineto closepath stroke
+
+/inch {72 mul} def
+8.5 inch 0 translate
+90 rotate
+
+%%EndProlog
+
+%%Page: 1 1
+
+/dobox {    % x1 x2 y1 y2
+  /y2 exch def
+  /y1 exch def
+  /x2 exch def
+  /x1 exch def
+% (x) = x1 = x2 = (y) = y1 = y2 = 
+  newpath
+  x1 y1 moveto
+  x2 y1 lineto
+  x2 y2 lineto
+  x1 y2 lineto
+  closepath fill
+} def
+
+/minwidth 1 inch 300 div def  % one "dot" at 300 dpi
+
+/codewidth 1 inch def
+
+/bottom .5 inch def
+/top 8 inch def
+/start .25 inch def
+/end 10.5 inch codewidth sub def
+
+0 setlinewidth
+
+start top 2 add moveto
+/Arial findfont 8 scalefont setfont
+
+ptype (sine) eq { % sine wave
+  (Sine, Factor: ) show
+  factor 1 sub 3 string cvs show (/) show factor 3 string cvs show
+  
+  /w end start sub def	% width
+  /step .2 w div def	% step (box width) = .2 point
+  /p 1 1 factor div sub def	% p = 1 - 1/factor = shrinkfactor
+  
+  1 step neg step { % for u=1; u>=step; u -= step
+    /u exch def
+    /xa1 end u w mul sub def	% left of box
+    /xa2 xa1 step w mul add def	% right of box
+    /r u ln p ln div def		% r = ln(u)/ln(p) increases by 1 each "period"
+    /i r 180 mul sin dup mul def  % i = sin^2(r * pi) oscillates between 0 and 1
+    1 i sub setgray
+    xa1 xa2 bottom top dobox
+  } for
+} if  
+
+ptype (square) eq { % square wave
+  (Square, Factor: ) show
+  factor 1 sub 3 string cvs show (/) show factor 3 string cvs show
+  
+  /p 1 1 factor div sub def	% p = 1 - 1/f
+  /p p sqrt def 			% change to sqrt(p)
+  /factor 1 1 p sub div def	% f = 1 / (1-p)
+  
+  {
+    /width end start sub def
+    /newwidth width factor div def
+    newwidth minwidth le {exit} if
+    /mid start newwidth add def
+    start mid bottom top dobox
+    /start mid def
+  
+    /width end start sub def
+    /newwidth width factor div def
+    newwidth minwidth le {exit} if
+    /mid start newwidth add def
+  %  start mid top1 top dobox
+    /start mid def
+  } loop
+} if
+
+
+
+
+0 setgray
+/lw .2 def
+lw setlinewidth
+
+/dy top bottom sub code length div def
+/gap .04 inch def
+/dx codewidth gap sub def
+
+/x end gap add def
+/y top def
+code
+{ /c exch def % 1 or 0
+  newpath x y moveto
+  dx 0 rlineto 0 dy neg rlineto
+  dx neg 0 rlineto 0 dy rlineto
+  closepath
+  1 c sub setgray
+  fill
+  newpath x y moveto
+  dx 0 rlineto
+  c setgray
+  stroke
+  /y y dy sub def
+} forall
+
+0 setgray
+
+/Arial findfont 32 scalefont setfont
+
+5.5 inch codestr stringwidth pop 2 div sub top 2 add moveto
+codestr show % print codestr centered on top of page
+
+showpage

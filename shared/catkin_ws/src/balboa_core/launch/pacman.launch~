@@ -1,0 +1,52 @@
+<launch>
+  <node name="usb_cam" pkg="usb_cam" type="usb_cam_node" output="screen">
+    <param name="video_device" value="/dev/video0" />
+    <param name="image_width" value="640" />
+    <param name="image_height" value="480" />
+    <param name="pixel_format" value="yuyv" />
+    <param name="camera_frame_id" value="usb_cam" />
+    <param name="io_method" value="mmap"/>
+    <remap from="/usb_cam/image_raw" to="/image"/>
+  </node>
+  
+  <node name="landmarkDetector" pkg="landmark_self_sim" type="landmarkDetector" output="screen" />
+
+    <node pkg="turtlesim" name="turtle1" type="turtle_teleop_key" required="true" launch-prefix="xterm -e">
+        <remap from="turtle1/cmd_vel" to="turtle1/cmd_vel_pid" />
+    </node>
+    <node name="balboa_pid" pkg="balboa_core" type="balboa_pid.py" launch-prefix="xterm -e"/>
+    <node name="balboa_angularvelpid" pkg="balboa_core" type="balboa_angularvelpid.py"/>
+    <node name="balboa_teleop_pid" pkg="balboa_core" type="balboa_teleop_pid.py"/>
+    <node name="balboa_teleop" pkg="balboa_core" type="balboa_teleop.py"/>
+    <node name="balboa_serial" pkg="balboa_core" type="balboa_serial_kj.py"/>
+  
+  <rosparam param="y/thresh/">
+    high: {h: 35, s: 170, v: 255}
+    low:  {h: 25, s: 83, v:  140}
+  </rosparam>
+  <rosparam param="p/thresh/">
+    high: {h: 160, s: 255, v: 255}
+    low:  {h: 120, s: 68,  v:  64}
+  </rosparam>
+  <rosparam param="g/thresh/">
+    high: {h: 83, s: 155, v: 255}
+    low:  {h: 65, s: 85,  v:  27}
+  </rosparam>
+  <group ns="/y">
+     <node name="ball_detector_node" pkg="ball_detector" type="ball_detector_node" output="screen">
+     <remap from="/y/image" to="/image" />
+     </node>
+  </group>
+  <group ns="/p">
+     <node name="ball_detector_node" pkg="ball_detector" type="ball_detector_node" output="screen" >
+     <remap from="/p/image" to="/image" />
+     </node>
+  </group>
+  <group ns="/g">
+     <node name="ball_detector_node" pkg="ball_detector" type="ball_detector_node" output="screen" >
+     <remap from="/g/image" to="/image" />
+     </node>
+  </group>
+
+    
+</launch>

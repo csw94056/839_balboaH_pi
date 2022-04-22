@@ -40,7 +40,7 @@ using namespace std;
 namespace enc = sensor_msgs::image_encodings;
 
 //Define to enable debugging (images, times, etc)
-#define BALLDETECTOR_DEBUG
+//#define BALLDETECTOR_DEBUG
 
 
 
@@ -127,7 +127,7 @@ BallDetector::BallDetector()
     updateLowHSV_sub_ = nh.subscribe<geometry_msgs::Vector3>("thresh/low",1,&BallDetector::updateLowThreshold,this);
     updateHighHSV_sub_ = nh.subscribe<geometry_msgs::Vector3>("thresh/high",1,&BallDetector::updateHighThreshold,this);
 
-    image_sub_ = it.subscribe("image", 1, &BallDetector::imageCb, this);
+    image_sub_ = it.subscribe("/image", 1, &BallDetector::imageCb, this);
 
     
     lowh_pub_ = nh.advertise<std_msgs::Float64>("hsv/center/low/h", 1);
@@ -141,7 +141,7 @@ BallDetector::BallDetector()
     highh_pub_ = nh.advertise<std_msgs::Float64>("hsv/center/high/h", 1);
     highs_pub_ = nh.advertise<std_msgs::Float64>("hsv/center/high/s", 1);
     highv_pub_ = nh.advertise<std_msgs::Float64>("hsv/center/high/v", 1);
-    
+ 
     circle_pub_ = nh.advertise<ball_detector::ballLocation>("ballLocation", 1);
     
 #ifdef BALLDETECTOR_DEBUG

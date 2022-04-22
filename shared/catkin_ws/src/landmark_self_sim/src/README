@@ -1,0 +1,29 @@
+mcimg - Middlebury College Image Library ver 1.1
+
+Huan Ding and Daniel Scharstein 7/6/99
+
+==============================================================================
+
+mcimg can deal with grayimage(pgm), Rgbimage(ppm), Binaryimage(pbm) 
+	and Floatimage(pfm)
+
+Functions provided:(if only include "mcimg.h")
+	imGetWidth(img),imGetHeight(img),imGetType(img),imRef(img,x,y)
+	imFree(i),new#Image(x,y),load#Image(filename),load#ImageF(fp),
+	save#Image(img,filename),save#ImageF(img,fp).
+	ROUND(n),MAX(n),MIN(n)
+        	note: # stands for one of following
+			{Gray,RGB,Binary,Float}
+
+For old users(include "image.h")
+	there are additional functions such as
+	imNew(img,x,y),imLoad(img,filename),imLoadF(img,fp)
+	imSave(img,filename),imSaveF(img,fp)
+
+Components:
+	mcimg.*, image.*, misc.*
+	
+	timetrack.* are for timing codes use only.
+==============================================================================
+
+If any bug is found, please report to hding@middlebury.edu or schar@middlebury.edu.

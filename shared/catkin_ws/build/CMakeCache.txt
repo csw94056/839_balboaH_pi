@@ -393,6 +393,12 @@ lab2_BINARY_DIR:STATIC=/home/shared/catkin_ws/build/lab2
 //Value Computed by CMake
 lab2_SOURCE_DIR:STATIC=/home/shared/catkin_ws/src/lab2
 
+//Value Computed by CMake
+landmark_self_sim_BINARY_DIR:STATIC=/home/shared/catkin_ws/build/landmark_self_sim
+
+//Value Computed by CMake
+landmark_self_sim_SOURCE_DIR:STATIC=/home/shared/catkin_ws/src/landmark_self_sim
+
 //Path to a library.
 lib:FILEPATH=/opt/ros/melodic/lib/librospack.so
 
@@ -554,7 +560,7 @@ CMAKE_MODULE_LINKER_FLAGS_RELWITHDEBINFO-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_NM
 CMAKE_NM-ADVANCED:INTERNAL=1
 //number of local generators
-CMAKE_NUMBER_OF_MAKEFILES:INTERNAL=7
+CMAKE_NUMBER_OF_MAKEFILES:INTERNAL=8
 //ADVANCED property for variable: CMAKE_OBJCOPY
 CMAKE_OBJCOPY-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_OBJDUMP

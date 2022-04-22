@@ -16,7 +16,7 @@
 
 (defclass balboa_core::balboaLL
   :super ros::object
-  :slots (_header _arduinoMillis _batteryMillivolts _angleY _angleX _angleZ _driveLeft _driveRight _speedLeft _speedRight _distanceLeft _distanceRight ))
+  :slots (_header _arduinoMillis _batteryMillivolts _angleY _angleX _angleZ _imuZ _driveLeft _driveRight _speedLeft _speedRight _distanceLeft _distanceRight ))
 
 (defmethod balboa_core::balboaLL
   (:init
@@ -27,6 +27,7 @@
     ((:angleY __angleY) 0)
     ((:angleX __angleX) 0)
     ((:angleZ __angleZ) 0)
+    ((:imuZ __imuZ) 0)
     ((:driveLeft __driveLeft) 0)
     ((:driveRight __driveRight) 0)
     ((:speedLeft __speedLeft) 0)
@@ -41,6 +42,7 @@
    (setq _angleY (round __angleY))
    (setq _angleX (round __angleX))
    (setq _angleZ (round __angleZ))
+   (setq _imuZ (round __imuZ))
    (setq _driveLeft (round __driveLeft))
    (setq _driveRight (round __driveRight))
    (setq _speedLeft (round __speedLeft))
@@ -70,6 +72,9 @@
   (:angleZ
    (&optional __angleZ)
    (if __angleZ (setq _angleZ __angleZ)) _angleZ)
+  (:imuZ
+   (&optional __imuZ)
+   (if __imuZ (setq _imuZ __imuZ)) _imuZ)
   (:driveLeft
    (&optional __driveLeft)
    (if __driveLeft (setq _driveLeft __driveLeft)) _driveLeft)
@@ -103,6 +108,8 @@
     4
     ;; int32 _angleZ
     4
+    ;; int32 _imuZ
+    4
     ;; int32 _driveLeft
     4
     ;; int32 _driveRight
@@ -132,6 +139,8 @@
        (write-long _angleX s)
      ;; int32 _angleZ
        (write-long _angleZ s)
+     ;; int32 _imuZ
+       (write-long _imuZ s)
      ;; int32 _driveLeft
        (write-long _driveLeft s)
      ;; int32 _driveRight
@@ -160,6 +169,8 @@
      (setq _angleX (sys::peek buf ptr- :integer)) (incf ptr- 4)
    ;; int32 _angleZ
      (setq _angleZ (sys::peek buf ptr- :integer)) (incf ptr- 4)
+   ;; int32 _imuZ
+     (setq _imuZ (sys::peek buf ptr- :integer)) (incf ptr- 4)
    ;; int32 _driveLeft
      (setq _driveLeft (sys::peek buf ptr- :integer)) (incf ptr- 4)
    ;; int32 _driveRight
@@ -176,7 +187,7 @@
    self)
   )
 
-(setf (get balboa_core::balboaLL :md5sum-) "0a0a3ddad915416071f2d2213a371653")
+(setf (get balboa_core::balboaLL :md5sum-) "177f0af1ae2e6db7ccad48fad72071e3")
 (setf (get balboa_core::balboaLL :datatype-) "balboa_core/balboaLL")
 (setf (get balboa_core::balboaLL :definition-)
       "Header header
@@ -186,6 +197,7 @@ int32 batteryMillivolts
 int32 angleY
 int32 angleX
 int32 angleZ
+int32 imuZ
 int32 driveLeft
 int32 driveRight
 int32 speedLeft
@@ -214,6 +226,6 @@ string frame_id
 
 
 
-(provide :balboa_core/balboaLL "0a0a3ddad915416071f2d2213a371653")
+(provide :balboa_core/balboaLL "177f0af1ae2e6db7ccad48fad72071e3")
 
 

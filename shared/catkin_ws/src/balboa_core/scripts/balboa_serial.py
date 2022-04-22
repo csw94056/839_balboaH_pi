@@ -90,6 +90,7 @@ class TheNode(object):
       msg.angleY = self.readFourByteAndChecksum()
       msg.angleX = self.readFourByteAndChecksum()
       msg.angleZ = self.readFourByteAndChecksum()
+      msg.imuZ = self.readFourByteAndChecksum()
       msg.driveLeft = self.readFourByteAndChecksum()
       msg.driveRight = self.readFourByteAndChecksum()
       msg.speedLeft = self.readFourByteAndChecksum()

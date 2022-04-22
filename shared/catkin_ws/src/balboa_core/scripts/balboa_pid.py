@@ -13,6 +13,7 @@ from balboa_core.msg import balboaLL
 from balboa_core.msg import balboaMotorSpeeds
 from balboa_core.msg import lineSensor
 from ball_detector.msg import ballLocation
+from landmark_self_sim.msg import landmarkLocation
 
 INF = 100000000000
 
@@ -27,7 +28,11 @@ class PIDNode(object):
         # Initiate Subscribers
         self.sub_TurtleTeleopKey = rospy.Subscriber('turtle1/cmd_vel_pid', Twist, self.handleTurtleTeleopKey)
         self.sub_BalboaLL = rospy.Subscriber('balboaLL', balboaLL, self.handleBalboaLL)
-        self.sub_ballLocation = rospy.Subscriber('ballLocation', ballLocation, self.handleBallLocation)
+        #self.sub_ballLocationGreen = rospy.Subscriber('/g/ballLocation', ballLocation, self.handleBallLocationGreen)
+        #self.sub_ballLocationPurple = rospy.Subscriber('/p/ballLocation', ballLocation, self.handleBallLocationPurple)
+        self.sub_ballLocationYellow = rospy.Subscriber('/y/ballLocation', ballLocation, self.handleBallLocationYellow)
+        self.sub_LandmarkLocation = rospy.Subscriber('/landmarkLocation', landmarkLocation, self.handleLandmarkLocation)
+        #self.sub_ballLocation = rospy.Subscriber('ballLocation', ballLocation, self.handleBallLocation)
         self.sub_ls = rospy.Subscriber('lineSensor', lineSensor, self.handleLineSensor)
         self.sub_ir = rospy.Subscriber('irRange', Float64, self.handleIrRangeSensor)
         self.pub_ls = rospy.Publisher('lineSensorMap', lineSensor, queue_size=10)
@@ -49,18 +54,25 @@ class PIDNode(object):
         self.integral_angle = 0
         # ROS Parameter Server
         # set PID parameters to receive settings from launch file
-        rospy.set_param('distanceCtrl/P', 0.013)
+        rospy.set_param('distanceCtrl/P', 0.03)
+        #rospy.set_param('distanceCtrl/I', 0.0025)
+        #rospy.set_param('distanceCtrl/D', 0.031)
+        #rospy.set_param('distanceCtrl/P', 0.022)
         rospy.set_param('distanceCtrl/I', 0.0)
-        rospy.set_param('distanceCtrl/D', 0.002)
+        rospy.set_param('distanceCtrl/D', 0.001)
         rospy.set_param('angleCtrl/P', 1.0)
         rospy.set_param('angleCtrl/I', 0.0)
         rospy.set_param('angleCtrl/D', 0.1)
-        rospy.set_param('clean_angleCtrl/P', 0.13)
+        #rospy.set_param('clean_angleCtrl/P', 0.04)
+        #rospy.set_param('clean_angleCtrl/I', 0.0)
+        #rospy.set_param('clean_angleCtrl/D', 0.032)
+        #rospy.set_param('clean_angleCtrl/P', 0.0145)
+        rospy.set_param('clean_angleCtrl/P', 0.012)
         rospy.set_param('clean_angleCtrl/I', 0.0)
         rospy.set_param('clean_angleCtrl/D', 0.0)
         self.draw_CS = 0
-        self.angle_speed_limit = 10
-        self.distance_speed_limit = 5
+        self.angle_speed_limit = 25
+        self.distance_speed_limit = 13
         # flag for reactive control
         self.reactive_control = 0
         self.r_ctrl_dist_target = 0
@@ -76,7 +88,19 @@ class PIDNode(object):
 
         #flag for ball detector
         self.ball_detector = 0
+        #fixed distance variable for the robot to keep from the target ball
         self.ball_detector_dist = 0
+
+        #flag for pac-man
+        self.pac_man = 0
+        #the ball is detected
+        self.ball_detected = 0
+
+        #flag for landmark detector
+        self.landmark_detector = 0
+        self.landmark_num = 0
+
+	self.angleCorrection = -12.7 #correction for difference in vertical and horizontal angle
 
     def handleTurtleTeleopKey(self, teleop_msg):
         # update target distance and angle based on turtle_teleop_key/cmd_vel
@@ -88,6 +112,7 @@ class PIDNode(object):
             else:
                 self.target_distance = self.target_distance + (teleop_msg.linear.x / 2.0)*1566.0
                 
+                
         if teleop_msg.angular.z == 0:
             self.target_angle = INF
             angularPID_msg = Int16()
@@ -95,14 +120,90 @@ class PIDNode(object):
             self.pub_angularPID.publish(angularPID_msg)
         else:
             if self.target_angle == INF:
-                self.target_angle = self.current_angle + (teleop_msg.angular.z / 2.0)*90.0    # unit: degrees
+                self.target_angle = self.current_angle + (teleop_msg.angular.z / 2.0)* 90 * self.angleCorrection    # unit: degrees
             else:
-                self.target_angle = self.target_angle + (teleop_msg.angular.z / 2.0)*90.0
- 
-    def handleBallLocation(self, bl_msg):
+                self.target_angle = self.target_angle + (teleop_msg.angular.z / 2.0)* 90 * self.angleCorrection
+
+    def handleLandmarkLocation(self, lm_msg):
+        if self.landmark_detector == 0:
+            return
+        if lm_msg.code == -1:
+            return
+        if lm_msg.code != self.landmark_num:
+            return
+        print("LandMark--------------------")
+        #distance = 304.89e^(-0.006 * height)
+        distance = 304.89 * math.exp(-0.006 * lm_msg.height) #cm
+        xmax = 650 #maximum of xtop and xbotton of landmarkLocation
+        
+        x_avg = (lm_msg.xtop + lm_msg.xbottom)/2.0
+        img_width = lm_msg.height * 1.29
+        x_0 = x_avg - xmax / 2
+        
+        radius = img_width / 2.0
+
+        x = x_0 * radius / xmax 
+
+        print("distance ", distance)
+        print("radius ", radius)
+        print("angle_ ",  (math.atan(x/distance) * 180.0/math.pi))
+        print("x_0 ", x_0)
+
+        angle_ = (math.atan(x/distance) * 180.0/math.pi)
+        if (abs(x_0) > radius and abs(angle_) > 13):
+            #angle_ = (math.atan(x/distance) * 180.0/math.pi)
+            if radius > 180:
+                angle_ = 0.5 * angle_
+
+            self.target_angle = self.current_angle - angle_ * self.angleCorrection
+            
+
+        elif abs(self.lm_dist - distance) > 15:
+            self.target_distance = self.current_distance + (distance - self.lm_dist) * 52.2
+            self.target_angle = INF
+
+        if distance < 105:
+            
+            self.ball_detector_distance = 40
+            self.ball_detector = 1
+            self.pacman = 1
+            self.landmark_detector = 0
+        
+        #print("code ", lm_msg.code)
+        #print("xtop ", lm_msg.xtop, " ytop ", lm_msg.ytop, " xbottom ", lm_msg.xbottom, " ybotton ", lm_msg.ybottom )
+        #print("height ", lm_msg.height)
+        #lm_width = lm_msg.height * 1.29
+        #print("width ", lm_width)
+        
+    def handleBallLocationGreen(self, bl_msg):
+        #self.ballLocation(bl_msg)
+
+        if bl_msg.radius < 25:
+            return
+        print("green ball")
+
+    def handleBallLocationPurple(self, bl_msg):
+        #self.ballLocation(bl_msg)
+
+        if bl_msg.radius < 25:
+            return
+        #print("purple ball")
+        
+    def handleBallLocationYellow(self, bl_msg):       
+        self.ballLocation(bl_msg)
+        if bl_msg.radius < 25:
+            return
+
+
+    def ballLocation(self, bl_msg):
         # ignore if ball detector is not activate or radius is less than 25
         if self.ball_detector == 0 or bl_msg.radius < 25:
             return
+
+        print("yellow ball")
+        print("ball detector -----------------------------")
+
+        self.ball_detected = 1
 
         dist = 189.23 * math.exp(-0.014 * bl_msg.radius) # cm
         # scale x variable in respect to the scale of the radius from ballLocation
@@ -114,22 +215,40 @@ class PIDNode(object):
         print("angle ",  ((math.atan(x / dist)) * 180.0 / math.pi) )
         print("radius ", bl_msg.radius)
 
+        angle_ = ((math.atan(x/dist)) * 180.0 / math.pi)
+        if (abs(bl_msg.x) > bl_msg.radius and abs(angle_) > 13):
+    
         # position the robot to face the ball straight on
-        if abs(bl_msg.x) > bl_msg.radius:
-            angle_ = ((math.atan(x/dist)) * 180.0 / math.pi)
+        #if abs(bl_msg.x) > bl_msg.radius + dist/15.0:
+           # angle_ = ((math.atan(x/dist)) * 180.0 / math.pi)
             # if the robot is close to the ball, then reduce angle control by half
             if bl_msg.radius > 50:
                 angle_ = 0.5 * angle_ 
-            self.target_angle = self.current_angle - angle_
+            self.target_angle = self.current_angle - angle_  * self.angleCorrection
             self.target_distance = INF
 
         # move the robot toward the ball
         elif abs(self.ball_detector_dist - dist) > 15:
             self.target_distance = self.current_distance + (dist - self.ball_detector_dist) * 52.2
             self.target_angle = INF
+
+        # publish visual servoing distance between the robot and the target
         servo_msg = Float64()
         servo_msg.data = dist
         self.pub_servo_distance.publish(servo_msg)
+
+        print("current_angle ", self.current_angle, " target_angle ", self.target_angle)
+        print("current dist ", self.current_distance, " target_dist ", self.target_distance)
+        if self.pac_man == 0:
+            return
+
+        # move the robot to hit the ball; addition forward 3 cm movement
+        self.target_distance += (self.ball_detector_dist + 3) * 52.2
+        
+
+
+
+        
         
     def handleBalboaLL(self, balboall_msg):
         # receive PID settings from launch file or command line via (rosparam set param_name value)
@@ -148,6 +267,9 @@ class PIDNode(object):
         self.angleX = balboall_msg.angleX
         self.current_angle = balboall_msg.angleX / 1000.0 # balboall_msg.angleX is in millidegrees
         self.current_distance = balboall_msg.distanceLeft * 1.0
+        print("angleX: ", balboall_msg.angleX, "distanceLeft: ", balboall_msg.distanceLeft, "distanceRight: ", balboall_msg.distanceRight)
+        print("c_angle: ", self.current_angle, "t_angle: ", self.target_angle)
+        print("c_distance: ", self.current_distance, "t_distance:, ", self.target_distance)
         
         if self.bugFlag > 0:
             tangentBug_msg = balboaMotorSpeeds()
@@ -199,7 +321,7 @@ class PIDNode(object):
             # return to startingTBAngle (initial angle position)
             if self.bugFlag == 3:
                 # self.target_angle = self.startingTBAngle 
-                self.target_angle = self.current_angle - abs(self.unobstructedAngleLeft - self.startingTBAngle)
+                self.target_angle = self.current_angle - abs(self.unobstructedAngleLeft - self.startingTBAngle) * self.angleCorrection
                 print("target_angle: ", self.target_angle)
                 if self.current_angle < self.startingTBAngle:
                 # if abs(self.current_angle - self.startingTBAngle) <= 1:
@@ -228,7 +350,7 @@ class PIDNode(object):
               
             # return to startingTBAngle (initial angle position)
             if self.bugFlag == 5:
-                self.target_angle = self.current_angle + abs(self.unobstructedAngleRight - self.startingTBAngle)
+                self.target_angle = self.current_angle + abs(self.unobstructedAngleRight - self.startingTBAngle) * self.angleCorrection
                 print("target_angle: ", self.target_angle)
                 if self.current_angle > self.startingTBAngle:
                     angleScan_msg = Int16()
@@ -246,11 +368,11 @@ class PIDNode(object):
                     if abs(self.startingTBAngle - self.unobstructedAngleRight) < abs(self.startingTBAngle - self.unobstructedAngleLeft):
                         # decrease angle by 25 degrees to move away from the object
                         self.unobsMoveAngle = -abs(self.startingTBAngle - self.unobstructedAngleRight) - 25
-                        self.target_angle = self.current_angle + self.unobsMoveAngle
+                        self.target_angle = self.current_angle + self.unobsMoveAngle * self.angleCorrection
                     else:
                         # increase angle by 25 degrees to move away from the object
                         self.unobsMoveAngle = abs(self.startingTBAngle - self.unobstructedAngleLeft) + 25
-                        self.target_angle = self.current_angle + self.unobsMoveAngle
+                        self.target_angle = self.current_angle + self.unobsMoveAngle * self.angleCorrection
                 print("ta ", self.target_angle, " ual ", self.unobstructedAngleLeft, " ca ", balboall_msg.angleX / 1000)
                     
                 if abs(self.current_angle - self.target_angle) <= 1:
@@ -269,7 +391,7 @@ class PIDNode(object):
                 if (self.target_distance - self.current_distance) <= 1:
                     self.target_angle = INF
                     self.target_distance = INF
-                    self.target_angle = self.current_angle - self.unobsMoveAngle
+                    self.target_angle = self.current_angle - self.unobsMoveAngle * self.angleCorrection
                     self.bugFlag = 8
                     print("bug flag 8")
                 
@@ -287,7 +409,7 @@ class PIDNode(object):
                 if (self.target_distance - self.current_distance) <= 1:
                     self.target_angle = INF
                     self.target_distance = INF
-                    self.target_angle = self.current_angle - self.unobsMoveAngle
+                    self.target_angle = self.current_angle - self.unobsMoveAngle * self.angleCorrection
                     self.bugFlag = 10
                     print("bug flag 10")
             
@@ -305,7 +427,7 @@ class PIDNode(object):
                 if (self.target_distance - self.current_distance) <= 1:
                     self.target_angle = INF
                     self.target_distance = INF
-                    self.target_angle = self.current_angle + self.unobsMoveAngle
+                    self.target_angle = self.current_angle + self.unobsMoveAngle * self.angleCorrection
                     self.bugFlag = 12
                     print("bug flag 12")
             
@@ -395,46 +517,6 @@ class PIDNode(object):
         set_distance = 2600
         set_angle = -90
         while not rospy.is_shutdown():
-            # draw CS letters
-            if self.draw_CS > 0:
-                self.target_angle = INF
-                self.target_distance = INF
-                if self.draw_CS == 1:
-                    self.target_distance = self.current_distance + set_distance
-                elif self.draw_CS == 2:
-                    self.target_angle = self.current_angle - set_angle
-                elif self.draw_CS == 3:
-                    self.target_distance = self.current_distance + set_distance
-                elif self.draw_CS == 4:
-                    self.target_angle = self.current_angle - set_angle
-                elif self.draw_CS == 5:
-                    self.target_distance = self.current_distance + set_distance
-                elif self.draw_CS == 6:
-                    self.target_distance = self.current_distance + set_distance
-                elif self.draw_CS == 7:
-                    self.target_angle = self.current_angle - set_angle
-                elif self.draw_CS == 8:
-                    self.target_distance = self.current_distance + set_distance/2
-                elif self.draw_CS == 9:
-                    self.target_angle = self.current_angle - set_angle
-                elif self.draw_CS == 10:
-                    self.target_distance = self.current_distance + set_distance/2
-                elif self.draw_CS == 11:
-                    self.target_angle = self.current_angle + set_angle
-                elif self.draw_CS == 12:
-                    self.target_distance = self.current_distance + set_distance
-                elif self.draw_CS == 13:
-                    self.target_angle = self.current_angle + set_angle
-                elif self.draw_CS == 14:
-                    self.target_distance = self.current_distance + set_distance/2
-                self.draw_CS += 1
-                if self.draw_CS >= 15:
-                    self.draw_CS = 0
-                    continue
-                # wait for 2 seconds for robot to finish distance or angular movement 
-                rospy.sleep(2)
-                continue
-            
             # terminal-based control
             # i.e. a10 means rotate 10 degree in right turn
             # i.e. d-1566 means move backward (1566*9.89478) / 1292 = 12 inch
@@ -449,6 +531,8 @@ class PIDNode(object):
                 self.r_ctrl_dist_target = 0
                 self.ball_detector = 0
                 self.ball_detector_dist = 0
+                self.pac_man = 0
+                self.landmark_detector = 0
                 
             elif val[0] == 'a' and val[1] == 'v' and val[2] == 'a':
                 # activate angleVelPID
@@ -462,7 +546,7 @@ class PIDNode(object):
                 # set target angle
                 self.reactive_control = 0
                 self.target_distance = INF
-                self.target_angle = self.current_angle + int(val[1:])       # unit: degree
+                self.target_angle = self.current_angle + int(val[1:]) * self.angleCorrection       # unit: degree
                 
             elif val[0] == 'd':
                 # set target distance
@@ -479,16 +563,24 @@ class PIDNode(object):
                 angularPID_msg = Int16()
                 angularPID_msg.data = int(val[1:])
                 self.pub_angularPID.publish(angularPID_msg)
-            
-            elif val[0] == 'c' and val[1] == 's':
-                self.reactive_control = 0
-                self.target_angle = INF
-                self.target_distance = INF
-                self.draw_CS = 1
 
             elif val[0] == 'b' and val[1] == 'd':
                 self.ball_detector_dist = int(val[2:])
                 self.ball_detector = 1
+                self.target_angle = INF
+                self.target_distance = INF
+
+            elif val[0] == 'l' and val[1] == 'm':
+                self.landmark_num = int(val[2:])
+                self.landmark_detector = 1
+                self.lm_dist = 100
+                self.target_angle = INF
+                self.target_distance = INF
+
+            elif val[0] == 'p' and val[1] == 'a' and val[2] == 'c':
+                self.ball_detector_dist = 40
+                self.ball_detector = 1
+                self.pac_man = 1
                 self.target_angle = INF
                 self.target_distance = INF
                 
@@ -567,9 +659,9 @@ class PIDNode(object):
                         self.target_angle = INF
                         self.target_distance = INF
                         if row % 2 == 0:
-                            self.target_angle = self.current_angle - 90.0
+                            self.target_angle = self.current_angle - 90.0 * self.angleCorrection
                         else:
-                            self.target_angle = self.current_angle + 90.0 #turn
+                            self.target_angle = self.current_angle + 90.0 * self.angleCorrection #turn
                         rospy.sleep(5)
                         print("move to next row")
                         self.target_angle = INF
@@ -580,9 +672,9 @@ class PIDNode(object):
                         self.target_angle = INF
                         self.target_distance = INF
                         if row % 2 == 0:
-                            self.target_angle = self.current_angle - 90.0 # turn
+                            self.target_angle = self.current_angle - 90.0 * self.angleCorrection # turn
                         else:
-                            self.target_angle = self.current_angle + 90.0 # turn
+                            self.target_angle = self.current_angle + 90.0 * self.angleCorrection # turn
                         rospy.sleep(5)
                         self.target_angle = INF
                         self.target_distance = INF
